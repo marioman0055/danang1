@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 다낭 가족 여행 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+        .tab-active {
+            border-bottom: 2px solid #57534e; /* stone-600 */
+            color: #57534e;
+            font-weight: 700;
+        }
+        .tab-inactive {
+            color: #a8a29e; /* stone-400 */
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone, Orange, Teal accents) -->
+    <!-- Application Structure Plan: 
+         1. Dashboard Header: Trip summary and countdown to build excitement.
+         2. Tab Navigation: Persistent bottom (mobile) or top (desktop) nav to switch between key views: '일정(Itinerary)', '예산(Budget)', '체크리스트(Checklist)', '정보(Info)'.
+         3. Itinerary View: Interactive day selector allowing deep dive into specific daily plans without scrolling fatigue.
+         4. Budget View: Doughnut chart for cost visualization and list for details.
+         5. Checklist View: Interactive to-do list with progress tracking.
+         6. Info View: Flight, Hotel, and Emergency details card.
+         Rationale: This structure separates distinct tasks (planning vs. packing vs. budgeting) for clarity. -->
+    <!-- Visualization & Content Choices:
+         1. Budget Chart: Chart.js Doughnut. Goal: Compare expenses. Justification: Easy to see the biggest cost drivers (Accommodation/Tickets) at a glance.
+         2. Progress Bar: CSS/HTML. Goal: Inform status of checklist.
+         3. Interactive Tabs: JS. Goal: Organize content logically. 
+         4. Confirmation: NO SVG graphics used. NO Mermaid JS used. Unicode icons used instead. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 text-stone-800 min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-white shadow-sm p-4 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-stone-700">✈️ 2026 다낭 가족 여행</h1>
+                <p class="text-xs md:text-sm text-stone-500">2025.12.31 - 2026.01.05 (5박 6일)</p>
+            </div>
+            <div class="text-right">
+                <span id="countdown" class="text-lg md:text-xl font-bold text-orange-600">D-Day</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-4xl mx-auto w-full p-4 pb-20 md:pb-4">
+        
+        <!-- Welcome/Intro Card -->
+        <section id="intro-section" class="mb-6 bg-white rounded-xl shadow p-6 border-l-4 border-orange-400">
+            <h2 class="text-lg font-bold mb-2">여행 컨셉: 힐링 & 소녀감성 🌿💅</h2>
+            <p class="text-sm text-stone-600 leading-relaxed">
+                이번 여행은 아빠, 엄마, 그리고 초6 딸이 함께하는 특별한 가족 여행입니다. 
+                꽉 막힌 일정보다는 여유로운 <strong>힐링</strong>, 맛있는 <strong>미식</strong>, 즐거운 <strong>쇼핑</strong>, 
+                그리고 딸을 위한 <strong>소녀감성 충전</strong>(네일, 소품샵)에 집중했습니다.
+                아래 탭을 통해 일정과 예산, 준비물을 확인해보세요!
+            </p>
+        </section>
+
+        <!-- View Container -->
+        <div id="view-container" class="space-y-6">
+            <!-- Content will be injected here by JS -->
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation (Mobile Friendly) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 shadow-lg md:relative md:border-none md:shadow-none md:bg-transparent md:mt-4">
+        <div class="max-w-4xl mx-auto flex justify-around md:justify-center md:gap-8 p-3">
+            <button onclick="switchView('itinerary')" class="nav-btn flex flex-col items-center p-2 text-stone-400 hover:text-stone-700" data-target="itinerary">
+                <span class="text-xl">🗓️</span>
+                <span class="text-xs font-medium">일정</span>
+            </button>
+            <button onclick="switchView('budget')" class="nav-btn flex flex-col items-center p-2 text-stone-400 hover:text-stone-700" data-target="budget">
+                <span class="text-xl">💰</span>
+                <span class="text-xs font-medium">예산</span>
+            </button>
+            <button onclick="switchView('checklist')" class="nav-btn flex flex-col items-center p-2 text-stone-400 hover:text-stone-700" data-target="checklist">
+                <span class="text-xl">✅</span>
+                <span class="text-xs font-medium">준비</span>
+            </button>
+            <button onclick="switchView('info')" class="nav-btn flex flex-col items-center p-2 text-stone-400 hover:text-stone-700" data-target="info">
+                <span class="text-xl">ℹ️</span>
+                <span class="text-xs font-medium">정보</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // --- Data ---
+        const tripData = {
+            startDate: new Date('2025-12-31'),
+            itinerary: [
+                {
+                    day: 1, date: '12.31 (수)', title: '설레는 도착 & 카운트다운 🎉',
+                    events: [
+                        { time: '18:45', icon: '🛫', text: '인천공항 출발 (WE201)', detail: '시간 변경 확인 필수' },
+                        { time: '21:55', icon: '🛬', text: '다낭 공항 도착', detail: '짐 찾고 입국장 밖 클룩 기사님 미팅' },
+                        { time: '22:45', icon: '🚐', text: '픽업 차량 탑승 → 윙크 호텔 이동', detail: '' },
+                        { time: '23:15', icon: '🏨', text: '윙크 호텔 체크인', detail: '24시간 스테이 적용 확인' },
+                        { time: '24:00', icon: '✨', text: 'HAPPY NEW YEAR!', detail: '루프탑/객실 불꽃놀이 & 야식(배달K)' }
+                    ]
+                },
+                {
+                    day: 2, date: '01.01 (목)', title: '핑크빛 시내 투어 & 모녀 데이트 ✨',
+                    events: [
+                        { time: '09:30', icon: '🚕', text: '호텔 → 핑크 성당 이동', detail: '그랩 이용 추천' },
+                        { time: '10:00', icon: '📸', text: '핑크 성당 (다낭 대성당)', detail: '아이 인생샷 스팟' },
+                        { time: '10:30', icon: '🚶', text: '한시장 & 금은방 환전', detail: 'Soan Ha 환전. 크록스, 라탄백, 원피스 쇼핑' },
+                        { time: '11:30', icon: '☕', text: '콩카페 (Cong Caphe)', detail: '코코넛 스무디 커피로 당 충전' },
+                        { time: '12:30', icon: '🍕', text: '점심: 피자포피스 (인도차이나점)', detail: '예약 필수. 화덕피자 & 게살파스타' },
+                        { time: '14:00', icon: '🛍️', text: '[Option] 아기자기 소품샵 투어', detail: '부부샵, 코메이 등. 아이들 취향 소품 천국!' },
+                        { time: '15:30', icon: '🚕', text: '영흥사(링엄사) 이동', detail: '해수관음상 & 미케비치 뷰' },
+                        { time: '17:00', icon: '🦀', text: '저녁: 목 식당 (Moc Seafood)', detail: '칠리새우, 모닝글로리, 가리비 구이' },
+                        { time: '18:30', icon: '🎡', text: '손트라 야시장 & 용다리', detail: '철판 아이스크림, 캐릭터 소품' },
+                        { time: '19:30', icon: '🏨', text: '호텔 복귀 & 휴식', detail: '루프탑 수영장 이용 가능' }
+                    ]
+                },
+                {
+                    day: 3, date: '01.02 (금)', title: '바나힐 (아이들의 천국) 🏰',
+                    events: [
+                        { time: '09:30', icon: '🏨', text: '윙크 호텔 체크아웃', detail: '짐 확인 필수' },
+                        { time: '09:40', icon: '🚐', text: '바나힐 출발 (야놀자 차량)', detail: '캐리어 차량 보관' },
+                        { time: '10:30', icon: '🏰', text: '바나힐 테마파크', detail: '골든브릿지 → 판타지 파크(루지, 범퍼카) 집중' },
+                        { time: '16:30', icon: '🚐', text: '바나힐 → 노보텔 이동', detail: '바로 노보텔로 직행' },
+                        { time: '17:30', icon: '🏨', text: '노보텔 체크인', detail: '1 Bedroom Apt, 엑스트라 베드 확인' },
+                        { time: '20:00', icon: '🍜', text: '저녁: 마담란', detail: '호텔 후문 도보 5분. 반세오 맛집' },
+                        { time: '21:30', icon: '🦶', text: '발 마사지 (센스 스파 등)', detail: '노보텔 근처. 바나힐 피로 풀기' }
+                    ]
+                },
+                {
+                    day: 4, date: '01.03 (토)', title: '호이안 체험 & 감성 여행 🏮',
+                    events: [
+                        { time: '10:30', icon: '🚐', text: '호이안 이동 (클룩 차량)', detail: '' },
+                        { time: '11:30', icon: '🥙', text: '점심: 호이안 맛집', detail: '포슈아 or 반미프엉' },
+                        { time: '13:00', icon: '🏖️', text: '안방 비치', detail: '라플라주/소울키친 카페 휴식' },
+                        { time: '15:30', icon: '🥥', text: '바구니 배 (코코넛 보트)', detail: '신나는 트로트 분위기 체험' },
+                        { time: '17:00', icon: '🏮', text: '[Option] 호이안 랜턴 만들기', detail: '최고의 기념품, 약 30-40분 소요' },
+                        { time: '18:00', icon: '🛶', text: '소원배 타기 & 야시장', detail: '소원초 띄우기' },
+                        { time: '20:00', icon: '🥟', text: '저녁: 미쓰리', detail: '화이트로즈, 완탄' },
+                        { time: '21:30', icon: '🚐', text: '다낭 복귀 (클룩 차량)', detail: '팁 10만동 준비' }
+                    ]
+                },
+                {
+                    day: 5, date: '01.04 (일)', title: '쇼핑 & 헬리오 센터 🚢',
+                    events: [
+                        { time: '오전', icon: '🛌', text: '늦잠 & 조식 브런치', detail: '여유로운 시작' },
+                        { time: '11:00', icon: '📸', text: '참 조각 박물관 & APEC 공원', detail: '호텔 근처 산책 및 사진' },
+                        { time: '12:30', icon: '🦐', text: '점심: 브릴리언트 씨푸드', detail: '깔끔하고 고급스러운 식당' },
+                        { time: '14:00', icon: '🛒', text: '롯데마트 쇼핑', detail: '탑젤리, 아하치즈, 쵸이젤리, 컵라면' },
+                        { time: '16:30', icon: '🎮', text: '헬리오 야시장 & 게임존', detail: '실내 오락실 게임 한 판' },
+                        { time: '19:30', icon: '🚢', text: '다낭 한강 유람선', detail: '용다리 불쇼 관람 (21:00)' },
+                        { time: '21:30', icon: '🦶', text: '발 마사지 & 숙소 복귀', detail: '추천: 골든 로터스 or 센스 스파. 그랩 이동.' }
+                    ]
+                },
+                {
+                    day: 6, date: '01.05 (월)', title: '오행산 & Last Fun ✈️',
+                    events: [
+                        { time: '11:00', icon: '🏨', text: '체크아웃 & 짐 보관', detail: '' },
+                        { time: '11:30', icon: '⛰️', text: '오행산 (마블 마운틴)', detail: '엘리베이터 이용. 동굴 탐험' },
+                        { time: '13:30', icon: '🍜', text: '점심: 미광 1A or 냐벱', detail: '' },
+                        { time: '15:30', icon: '🎡', text: '아시아 파크 (썬월드)', detail: '썬휠 대관람차, 놀이기구' },
+                        { time: '17:30', icon: '☕', text: '카페 & 막바지 쇼핑', detail: '웃띠크 등' },
+                        { time: '19:00', icon: '💆‍♀️', text: '투란 스파 (Turan Spa)', detail: '어른: 전신마사지 / 아이: 네일아트 (예약완료)' },
+                        { time: '20:30', icon: '🚐', text: '공항 이동 (스파 샌딩)', detail: '' },
+                        { time: '22:55', icon: '🛫', text: '다낭 출발 (WE202)', detail: '1/6 05:30 인천 도착' }
+                    ]
+                }
+            ],
+            budget: [
+                { category: '입장권/투어 (바나힐, 오행산, 유람선 등)', amount: 4150000, color: '#f97316' }, // Orange 500
+                { category: '마사지/체험 (네일, 랜턴 등)', amount: 2300000, color: '#14b8a6' }, // Teal 500
+                { category: '식비 (피자포피스, 해산물 등)', amount: 2500000, color: '#ef4444' }, // Red 500
+                { category: '기타 (소원배, 팁 등)', amount: 300000, color: '#a8a29e' } // Stone 400
+            ],
+            checklist: [
+                { category: '필수 예약', items: ['항공권 E-티켓 출력', '호텔 바우처 저장', '여행자 보험 가입', '트래블로그/월렛 충전', '유심/이심 구매', 'Grab 앱 설치 & 카드등록', '클룩/야놀자 바우처 저장'] },
+                { category: '사전 요청', items: ['윙크호텔 24h 스테이 확인', '노보텔 엑스트라 베드 요청', '피자포피스 예약 (1/1)', '투란스파 예약 (샌딩/네일)'] },
+                { category: '짐싸기', items: ['여권 (유효기간 확인)', '샤워기 필터 & 리필', '동지갑', '멀티탭 (3구 이상)', '상비약', '경량 패딩 (바나힐용)', '아이 용품 (헤드셋)', '팁용 현금 준비'] }
+            ]
+        };
+
+        // --- Logic ---
+        
+        function init() {
+            updateCountdown();
+            setInterval(updateCountdown, 1000 * 60); // Update every minute
+            switchView('itinerary'); // Default view
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const diff = tripData.startDate - now;
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            const el = document.getElementById('countdown');
+            if (diff > 0) {
+                el.innerText = `D-${days}`;
+            } else if (diff > - (6 * 24 * 60 * 60 * 1000)) {
+                el.innerText = "여행 중! ✈️";
+            } else {
+                el.innerText = "여행 종료";
+            }
+        }
+
+        function switchView(viewName) {
+            // Update Nav State
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.dataset.target === viewName) {
+                    btn.classList.add('text-stone-800', 'font-bold');
+                    btn.classList.remove('text-stone-400');
+                } else {
+                    btn.classList.remove('text-stone-800', 'font-bold');
+                    btn.classList.add('text-stone-400');
+                }
+            });
+
+            const container = document.getElementById('view-container');
+            container.innerHTML = ''; // Clear content
+            container.className = 'fade-in space-y-6';
+
+            if (viewName === 'itinerary') renderItinerary(container);
+            else if (viewName === 'budget') renderBudget(container);
+            else if (viewName === 'checklist') renderChecklist(container);
+            else if (viewName === 'info') renderInfo(container);
+        }
+
+        function renderItinerary(container) {
+            const intro = document.createElement('div');
+            intro.className = 'bg-stone-100 p-4 rounded-lg mb-4';
+            intro.innerHTML = `<p class="text-sm text-stone-600">📅 <strong>5박 6일 상세 일정</strong>입니다. 날짜를 클릭하여 세부 계획을 확인하세요. 소녀감성 체험과 힐링 포인트가 포함되어 있습니다.</p>`;
+            container.appendChild(intro);
+
+            // Day Selectors
+            const dayNav = document.createElement('div');
+            dayNav.className = 'flex overflow-x-auto gap-2 pb-2 mb-4 scrollbar-hide';
+            tripData.itinerary.forEach((day, index) => {
+                const btn = document.createElement('button');
+                btn.className = `whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors border ${index === 0 ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-stone-600 border-stone-200'}`;
+                btn.innerText = `Day ${day.day}`;
+                btn.onclick = () => {
+                    document.querySelectorAll('#day-list > div').forEach(el => el.classList.add('hidden'));
+                    document.getElementById(`day-${day.day}`).classList.remove('hidden');
+                    // Reset buttons
+                    Array.from(dayNav.children).forEach(b => {
+                        b.className = 'whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors border bg-white text-stone-600 border-stone-200';
+                    });
+                    btn.className = 'whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors border bg-teal-600 text-white border-teal-600';
+                };
+                dayNav.appendChild(btn);
+            });
+            container.appendChild(dayNav);
+
+            // Day Details
+            const dayList = document.createElement('div');
+            dayList.id = 'day-list';
+            
+            tripData.itinerary.forEach((day, index) => {
+                const dayCard = document.createElement('div');
+                dayCard.id = `day-${day.day}`;
+                dayCard.className = index === 0 ? '' : 'hidden';
+                
+                let eventsHtml = day.events.map(event => `
+                    <div class="flex items-start gap-3 p-3 bg-white border border-stone-100 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-2xl mt-1">${event.icon}</div>
+                        <div>
+                            <span class="inline-block px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-800 mb-1">${event.time}</span>
+                            <h4 class="font-bold text-stone-800">${event.text}</h4>
+                            ${event.detail ? `<p class="text-xs text-stone-500 mt-1">${event.detail}</p>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                dayCard.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-teal-50 p-4 border-b border-teal-100">
+                            <h3 class="text-lg font-bold text-teal-800">${day.date} | ${day.title}</h3>
+                        </div>
+                        <div class="p-4 space-y-3 bg-stone-50">
+                            ${eventsHtml}
+                        </div>
+                    </div>
+                `;
+                dayList.appendChild(dayCard);
+            });
+            container.appendChild(dayList);
+        }
+
+        function renderBudget(container) {
+            const intro = document.createElement('div');
+            intro.className = 'bg-stone-100 p-4 rounded-lg mb-4';
+            intro.innerHTML = `<p class="text-sm text-stone-600">💰 <strong>예상 경비(VND 기준)</strong>입니다. 항공권과 숙박비를 제외한 현지 지출 예상 내역입니다. (약 925만동)</p>`;
+            container.appendChild(intro);
+
+            // Chart Container
+            const chartWrapper = document.createElement('div');
+            chartWrapper.className = 'bg-white p-4 rounded-xl shadow mb-6';
+            chartWrapper.innerHTML = `<div class="chart-container"><canvas id="budgetChart"></canvas></div>`;
+            container.appendChild(chartWrapper);
+
+            // Data Table
+            const table = document.createElement('div');
+            table.className = 'bg-white rounded-xl shadow overflow-hidden';
+            let rows = tripData.budget.map(item => `
+                <div class="flex justify-between items-center p-3 border-b border-stone-100 last:border-0">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full" style="background-color: ${item.color}"></span>
+                        <span class="text-sm font-medium text-stone-700">${item.category}</span>
+                    </div>
+                    <span class="text-sm font-bold text-stone-800">${item.amount.toLocaleString()} VND</span>
+                </div>
+            `).join('');
+            table.innerHTML = rows;
+            container.appendChild(table);
+
+            // Render Chart
+            setTimeout(() => {
+                const ctx = document.getElementById('budgetChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: tripData.budget.map(d => d.category.split(' ')[0]), // Simplify labels
+                        datasets: [{
+                            data: tripData.budget.map(d => d.amount),
+                            backgroundColor: tripData.budget.map(d => d.color),
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }, 0);
+        }
+
+        function renderChecklist(container) {
+            const intro = document.createElement('div');
+            intro.className = 'bg-stone-100 p-4 rounded-lg mb-4';
+            intro.innerHTML = `<p class="text-sm text-stone-600">✅ <strong>여행 준비 체크리스트</strong>입니다. 클릭하여 완료 상태를 표시하세요. 진행 상황이 저장되지 않으므로 참고용으로 활용하세요.</p>`;
+            container.appendChild(intro);
+
+            tripData.checklist.forEach(group => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow mb-4 overflow-hidden';
+                
+                const header = document.createElement('div');
+                header.className = 'bg-orange-50 p-3 border-b border-orange-100 font-bold text-orange-800';
+                header.innerText = group.category;
+                card.appendChild(header);
+
+                const list = document.createElement('div');
+                list.className = 'p-2';
+                group.items.forEach(item => {
+                    const row = document.createElement('label');
+                    row.className = 'flex items-center gap-3 p-3 hover:bg-stone-50 rounded cursor-pointer';
+                    row.innerHTML = `
+                        <input type="checkbox" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 border-gray-300" onchange="this.nextElementSibling.classList.toggle('line-through'); this.nextElementSibling.classList.toggle('text-stone-400')">
+                        <span class="text-sm text-stone-700 select-none">${item}</span>
+                    `;
+                    list.appendChild(row);
+                });
+                card.appendChild(list);
+                container.appendChild(card);
+            });
+        }
+
+        function renderInfo(container) {
+            const sections = [
+                {
+                    title: '🛫 항공편 (Parata Airlines)',
+                    content: `
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-stone-500">출국 (WE201)</span>
+                                <span class="font-medium">12.31 18:45 ICN → 21:55 DAD</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-stone-500">귀국 (WE202)</span>
+                                <span class="font-medium">01.05 22:55 DAD → 05:30+1 ICN</span>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    title: '🏨 숙소',
+                    content: `
+                        <div class="space-y-3 text-sm">
+                            <div>
+                                <span class="block font-bold text-teal-700">윙크 호텔 다낭 리버사이드 (2박)</span>
+                                <span class="text-stone-500">12.31 ~ 01.02 | 24시간 스테이</span>
+                            </div>
+                            <div>
+                                <span class="block font-bold text-teal-700">노보텔 다낭 프리미어 (3박)</span>
+                                <span class="text-stone-500">01.02 ~ 01.05 | 1 Bed Apt + 엑스트라 베드</span>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    title: '🏥 비상 연락처',
+                    content: `
+                        <div class="grid grid-cols-1 gap-2 text-sm">
+                            <a href="tel:+842438315111" class="block p-2 bg-red-50 text-red-700 rounded hover:bg-red-100">📞 대사관: +84-24-3831-5111</a>
+                            <a href="tel:+842363509111" class="block p-2 bg-red-50 text-red-700 rounded hover:bg-red-100">📞 패밀리 메디컬: +84-236-3509-111</a>
+                            <a href="tel:+82232100404" class="block p-2 bg-red-50 text-red-700 rounded hover:bg-red-100">📞 영사 콜센터: +82-2-3210-0404</a>
+                        </div>
+                    `
+                }
+            ];
+
+            sections.forEach(sec => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow mb-4 overflow-hidden';
+                card.innerHTML = `
+                    <div class="bg-stone-50 p-3 border-b border-stone-100 font-bold text-stone-800">${sec.title}</div>
+                    <div class="p-4">${sec.content}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize App
+        init();
+
+    </script>
+</body>
+</html>
