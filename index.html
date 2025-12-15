@@ -1,817 +1,528 @@
-import React, { useState } from 'react';
-import { Plane, Hotel, Calendar, CheckSquare, Wallet, MapPin, ChevronDown, ChevronUp, Sun, Moon, Coffee, ShoppingBag, Camera, Music, Anchor, ExternalLink, Utensils, Car } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 다낭 가족여행 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f0f4f8; color: #333; }
+        .gradient-header { background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%); }
+        .card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding: 1.25rem; margin-bottom: 1rem; }
+        .map-btn { color: #e53e3e; margin-left: 6px; font-size: 1.1em; transition: transform 0.2s; display: inline-block; }
+        .map-btn:hover { transform: scale(1.2); color: #c53030; }
+        .timeline-item { position: relative; padding-left: 2rem; padding-bottom: 1.5rem; border-left: 2px solid #e2e8f0; }
+        .timeline-item:last-child { border-left: transparent; }
+        .timeline-dot { position: absolute; left: -0.4rem; top: 0.2rem; width: 0.8rem; height: 0.8rem; border-radius: 50%; background-color: #3b82f6; border: 2px solid white; box-shadow: 0 0 0 2px #3b82f6; }
+        .tag { display: inline-block; font-size: 0.75rem; padding: 0.1rem 0.4rem; border-radius: 0.25rem; font-weight: 600; margin-left: 0.5rem; }
+        .tag-blue { background-color: #dbeafe; color: #1e40af; }
+        .tag-green { background-color: #d1fae5; color: #065f46; }
+        .tag-red { background-color: #fee2e2; color: #991b1b; }
+        .tag-purple { background-color: #f3e8ff; color: #6b21a8; }
+        .section-title { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; display: flex; align-items: center; }
+        .section-title i { margin-right: 0.5rem; color: #0083b0; }
+        
+        /* Navigation Tabs */
+        .nav-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .nav-scroll::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="pb-10">
 
-const DanangTripDashboard = () => {
-  const [activeTab, setActiveTab] = useState('schedule');
-  const [expandedDay, setExpandedDay] = useState(1); // Default to Day 1 open
-  const [checkedItems, setCheckedItems] = useState({});
-
-  const toggleDay = (day) => {
-    if (expandedDay === day) {
-      setExpandedDay(null);
-    } else {
-      setExpandedDay(day);
-    }
-  };
-
-  const toggleCheck = (id) => {
-    setCheckedItems(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
-  const openMap = (query) => {
-    if (!query) return;
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
-  };
-
-  const flights = [
-    { type: '출국', date: '12.31(수)', flight: 'WE201', time: '18:45 ICN → 21:55 DAD', note: '파라타항공' },
-    { type: '귀국', date: '01.05(월)', flight: 'WE202', time: '22:55 DAD → 05:30+1 ICN', note: '1/6 아침 도착' }
-  ];
-
-  const hotels = [
-    { name: '윙크 호텔 다낭 리버사이드', period: '12.31 ~ 01.02 (2박)', note: '24시간 스테이 적용', type: '시내', mapQuery: 'Wink Hotel Danang Riverside' },
-    { name: '노보텔 다낭 프리미어', period: '01.02 ~ 01.05 (3박)', note: '1 Bedroom Apt (거실 엑베)', type: '호캉스', mapQuery: 'Novotel Danang Premier Han River' }
-  ];
-
-  const scheduleData = [
-    {
-      day: 1,
-      date: '12.31 (수)',
-      title: '설레는 도착 & 카운트다운 🎉',
-      activities: [
-        { 
-          time: '18:45', 
-          title: '인천공항 출발', 
-          desc: 'WE201편 탑승', 
-          icon: <Plane size={16} />,
-          details: []
-        },
-        { 
-          time: '21:55', 
-          title: '다낭 공항 도착', 
-          desc: '짐 찾고 클룩 기사님 미팅', 
-          icon: <MapPin size={16} />, 
-          mapQuery: 'Da Nang International Airport',
-          details: []
-        },
-        { 
-          time: '22:45', 
-          title: '호텔 이동 (클룩 픽업)', 
-          desc: '윙크 호텔로 이동', 
-          icon: <Car size={16} />,
-          details: [{ label: 'Move', text: '픽업 차량 탑승' }]
-        },
-        { 
-          time: '23:15', 
-          title: '윙크 호텔 체크인', 
-          desc: '24시간 스테이 확인 필수', 
-          icon: <Hotel size={16} />, 
-          mapQuery: 'Wink Hotel Danang Riverside',
-          details: []
-        },
-        { 
-          time: '24:00', 
-          title: 'HAPPY NEW YEAR! ✨', 
-          desc: '새해 맞이 불꽃놀이 & 야식', 
-          icon: <Moon size={16} />, 
-          details: [{ label: 'Note', text: '루프탑 또는 객실 관람 & 배달K로 야식 주문' }]
-        },
-      ]
-    },
-    {
-      day: 2,
-      date: '01.01 (목)',
-      title: '미카즈키 온천 & 영흥사 힐링 ✨',
-      activities: [
-        { 
-          time: '09:30', 
-          title: '미카즈키 리조트 이동', 
-          desc: '그랩 탑승', 
-          icon: <Car size={16} />, 
-          details: [{ label: 'Move', text: '시내에서 약 20~30분 소요' }]
-        },
-        { 
-          time: '10:00', 
-          title: '미카즈키 온천 & 워터파크', 
-          desc: '실내 워터파크 물놀이', 
-          icon: <Sun size={16} />, 
-          mapQuery: 'Da Nang Mikazuki Japanese Resorts & Spa',
-          details: [{ label: 'Vibe', text: '날씨 영향 없이 신나는 물놀이 가능' }]
-        },
-        { 
-          time: '12:30', 
-          title: '점심 식사', 
-          desc: '리조트 내 푸드코트/레스토랑', 
-          icon: <Utensils size={16} />,
-          details: []
-        },
-        { 
-          time: '14:30', 
-          title: '영흥사(링엄사) 이동', 
-          desc: '그랩 이동 (북서→북동)', 
-          icon: <Car size={16} />, 
-          details: [{ label: 'Move', text: '약 30~40분 소요 (거리가 좀 있음)' }]
-        },
-        { 
-          time: '15:30', 
-          title: '영흥사(링엄사) 관람', 
-          desc: '해수관음상 & 전망 감상', 
-          icon: <Camera size={16} />, 
-          mapQuery: 'Linh Ung Pagoda',
-          details: [{ label: 'Note', text: '경사가 있으니 편한 신발 추천' }]
-        },
-        { 
-          time: '17:00', 
-          title: '저녁: 목 식당 (Moc Seafood)', 
-          desc: '해산물 맛집', 
-          icon: <Utensils size={16} />, 
-          mapQuery: 'Moc Seafood Danang',
-          details: [{ label: 'Move', text: '약 15~20분 소요' }]
-        },
-        { 
-          time: '18:30', 
-          title: '손트라 야시장 & 용다리', 
-          desc: '야경 산책', 
-          icon: <ShoppingBag size={16} />, 
-          mapQuery: 'Son Tra Night Market',
-          details: [{ label: 'Move', text: '식당에서 매우 가까움 (기본요금)' }]
-        },
-        { 
-          time: '19:30', 
-          title: '호텔 복귀', 
-          desc: '휴식', 
-          icon: <Hotel size={16} />, 
-          details: []
-        }
-      ]
-    },
-    {
-      day: 3,
-      date: '01.02 (금)',
-      title: '바나힐 완전 정복 & 다리 힐링 🏰',
-      activities: [
-        { 
-          time: '09:30', 
-          title: '윙크 호텔 체크아웃', 
-          desc: '', 
-          icon: <Hotel size={16} />,
-          details: []
-        },
-        { 
-          time: '09:40', 
-          title: '바나힐 출발', 
-          desc: '야놀자 차량 탑승', 
-          icon: <Car size={16} />, 
-          details: [{ label: 'Note', text: '짐은 차량 트렁크에 보관' }]
-        },
-        { 
-          time: '10:30', 
-          title: '바나힐 도착 & 골든 브릿지', 
-          desc: '케이블카 & 플라워 가든', 
-          icon: <Anchor size={16} />, 
-          mapQuery: 'Golden Bridge Ba Na Hills',
-          details: [
-            { label: 'Ticket', text: '종합 이용권에 케이블카+놀이시설 포함' },
-            { label: 'Note', text: '밀랍인형 박물관/유료 게임 제외' }
-          ]
-        },
-        { 
-          time: '12:00', 
-          title: '점심: 바나힐 맛집', 
-          desc: '뷔페 또는 단품 선택', 
-          icon: <Utensils size={16} />, 
-          mapQuery: 'Ba Na Hills Restaurants',
-          details: [
-            { label: 'Option A', text: '아라팡/비어플라자 (뷔페/한식포함)' },
-            { label: 'Option B', text: '브라세리 (이탈리안/피자)' },
-            { label: 'Option C', text: '캅카스 (양고기 BBQ 꼬치)' }
-          ]
-        },
-        { 
-          time: '13:00', 
-          title: '밀랍인형 박물관 (Wax Museum)', 
-          desc: '유명 인사와 사진 찍기', 
-          icon: <Camera size={16} />, 
-          details: [
-            { label: 'Ticket', text: '별도 구매 필요 (약 10만동/인)' },
-            { label: 'Photo', text: '아이와 실물 크기 인형 인증샷' }
-          ]
-        },
-        { 
-          time: '13:40', 
-          title: '판타지 파크: 루지 & 범퍼카', 
-          desc: '놀이시설 즐기기', 
-          icon: <Sun size={16} />, 
-          details: [
-            { label: 'Strategy', text: '무조건 루지(알파인 코스터) 먼저 탑승! (비오면 중단)' },
-            { label: 'Next', text: '이후 실내 범퍼카 등 이용' }
-          ]
-        },
-        { 
-          time: '15:30', 
-          title: '스타벅스 바나힐점', 
-          desc: '커피 한잔의 여유', 
-          icon: <Coffee size={16} />, 
-          mapQuery: 'Starbucks Ba Na Hills',
-          details: [
-            { label: 'Shopping', text: '베트남/다낭 시티 데미머그 세트' },
-            { label: 'Drink', text: '아시아 돌체 라떼 (당 충전!)' }
-          ]
-        },
-        { 
-          time: '16:30', 
-          title: '하산 & 노보텔 이동', 
-          desc: '야놀자 차량 탑승', 
-          icon: <Car size={16} />, 
-          details: []
-        },
-        { 
-          time: '17:30', 
-          title: '노보텔 체크인', 
-          desc: '1 Bedroom Apt', 
-          icon: <Hotel size={16} />, 
-          mapQuery: 'Novotel Danang Premier Han River',
-          details: []
-        },
-        { 
-          time: '18:00', 
-          title: '저녁: 마담란 (Madame Lan)', 
-          desc: '반세오 맛집', 
-          icon: <Utensils size={16} />, 
-          mapQuery: 'Madame Lan Restaurant',
-          details: [{ label: 'Move', text: '호텔에서 도보 5분' }]
-        },
-        { 
-          time: '19:30', 
-          title: '골든 로터스 스파', 
-          desc: '발마사지 60분', 
-          icon: <Moon size={16} />, 
-          mapQuery: 'Golden Lotus Spa Danang',
-          details: [
-            { label: 'Move', text: '식당에서 도보 10분/그랩 기본' },
-            { label: 'Tip', text: '식사 후 소화시키며 이동 추천' }
-          ]
-        }
-      ]
-    },
-    {
-      day: 4,
-      date: '01.03 (토)',
-      title: '호이안 안방 비치 & 랜턴 🏮',
-      activities: [
-        { 
-          time: '09:30', 
-          title: '안방 비치로 이동', 
-          desc: '클룩 차량 (편도 렌트)', 
-          icon: <Car size={16} />, 
-          details: [{ label: 'Move', text: '약 40~50분 소요' }]
-        },
-        { 
-          time: '10:10', 
-          title: '카페: 더 덱 하우스', 
-          desc: '오션뷰 카페', 
-          icon: <Coffee size={16} />, 
-          mapQuery: 'The Deck House An Bang Beach',
-          details: [{ label: 'Move', text: '주차장에서 해변 쪽으로 도보' }]
-        },
-        { 
-          time: '12:00', 
-          title: '점심: 라플라주 (La Plage)', 
-          desc: '해산물 맛집', 
-          icon: <Utensils size={16} />, 
-          mapQuery: 'La Plage Hoi An',
-          details: [{ label: 'Menu', text: '가리비 구이, 총알 오징어, 해산물 볶음밥' }]
-        },
-        { 
-          time: '13:30', 
-          title: '호이안 올드타운 이동', 
-          desc: '그랩 이용', 
-          icon: <Car size={16} />, 
-          mapQuery: 'Hoi An Ancient Town',
-          details: [{ label: 'Move', text: '약 10~15분 소요' }]
-        },
-        { 
-          time: '14:00', 
-          title: '씨클로(Cyclo) 투어', 
-          desc: '인력거 타고 구경', 
-          icon: <Sun size={16} />, 
-          details: [{ label: 'Tip', text: '더운 낮 시간에 편하게 관람' }]
-        },
-        { 
-          time: '15:00', 
-          title: '파이포 커피 (Faifo Coffee)', 
-          desc: '루프탑 포토존', 
-          icon: <Coffee size={16} />, 
-          mapQuery: 'Faifo Coffee',
-          details: []
-        },
-        { 
-          time: '16:30', 
-          title: '랜턴 만들기 체험', 
-          desc: 'The Lantern Lady', 
-          icon: <Sun size={16} />, 
-          mapQuery: 'The Lantern Lady Hoi An',
-          details: [{ label: 'Note', text: '16:30 예약 시간 준수' }]
-        },
-        { 
-          time: '18:00', 
-          title: '호이안 야시장 탐방', 
-          desc: '저녁 식사 및 구경', 
-          icon: <ShoppingBag size={16} />, 
-          mapQuery: 'Hoi An Night Market',
-          details: [{ label: 'Move', text: '투본강 다리 건너 이동' }]
-        },
-        { 
-          time: '19:00', 
-          title: '투본강 소원배 타기', 
-          desc: '소원초 띄우기', 
-          icon: <Anchor size={16} />, 
-          details: []
-        },
-        { 
-          time: '20:00', 
-          title: '[투어패스 1] 마사지', 
-          desc: '아트 스파 or 세레네 스파', 
-          icon: <Moon size={16} />, 
-          mapQuery: 'Art Spa Hoi An',
-          details: [{ label: 'Move', text: '야시장 근처 도보/그랩' }]
-        },
-        { 
-          time: '21:30', 
-          title: '호텔 복귀', 
-          desc: '클룩 차량 픽업', 
-          icon: <Car size={16} />, 
-          details: [{ label: 'Move', text: '스파 앞에서 바로 탑승 (40분 소요)' }]
-        }
-      ]
-    },
-    {
-      day: 5,
-      date: '01.04 (일)',
-      title: '쇼핑 & 힐링 케어 & 불쇼 🚢',
-      activities: [
-        { 
-          time: '09:00', 
-          title: '오행산 (마블 마운틴)', 
-          desc: '동굴과 사원 탐방', 
-          icon: <Sun size={16} />, 
-          mapQuery: 'The Marble Mountains',
-          details: [{ label: 'Move', text: '그랩 이동 약 15~20분' }]
-        },
-        { 
-          time: '12:00', 
-          title: '점심: 씀모이가든', 
-          desc: '베트남 가정식', 
-          icon: <Utensils size={16} />, 
-          mapQuery: 'Nha Hang Xeo Moi Garden',
-          details: [{ label: 'Move', text: '오행산에서 시내로 이동 (20분)' }]
-        },
-        { 
-          time: '14:00', 
-          title: '원데이 클래스 (공방)', 
-          desc: '도자기 또는 캔들', 
-          icon: <Sun size={16} />, 
-          mapQuery: 'Gom An Nhien',
-          details: [
-            { label: 'Option', text: '1. Gốm An Nhiên (도자기) / 2. The Town Diy (캔들)' },
-            { label: 'Address', text: '320/5 Hoàng Diệu (그랩 5~10분)' }
-          ]
-        },
-        { 
-          time: '16:30', 
-          title: '[투어패스 2] 마사지', 
-          desc: '하엔 스파 or 바빌론 스파', 
-          icon: <Moon size={16} />, 
-          mapQuery: 'Ha Nhi Spa Danang',
-          details: [{ label: 'Tip', text: '저녁 먹기 전 개운하게 피로 풀기' }]
-        },
-        { 
-          time: '18:00', 
-          title: '저녁: 농티화 (Ngon Thi Hoa)', 
-          desc: '분위기 좋은 식당', 
-          icon: <Utensils size={16} />, 
-          mapQuery: 'Ngon Thi Hoa Restaurant',
-          details: []
-        },
-        { 
-          time: '20:15', 
-          title: '미슈앙 크루즈 탑승', 
-          desc: '용다리 물/불쇼 관람', 
-          icon: <Anchor size={16} />, 
-          mapQuery: 'Han River Cruise',
-          details: [
-            { label: 'Highlight', text: '일요일 밤 9시 불쇼 골든타임!' },
-            { label: 'Move', text: '농티화에서 선착장 도보 10분' }
-          ]
-        },
-        { 
-          time: '21:30', 
-          title: '숙소 복귀', 
-          desc: '그랩 이용', 
-          icon: <Hotel size={16} />, 
-          details: [{ label: 'Tip', text: '혼잡하니 큰길로 나와서 호출' }]
-        }
-      ]
-    },
-    {
-      day: 6,
-      date: '01.05 (월)',
-      title: 'Last Fun & Good Bye ✈️',
-      activities: [
-        { 
-          time: '10:00', 
-          title: '체크아웃 & 짐 보관', 
-          desc: '호텔 로비에 보관', 
-          icon: <Hotel size={16} />, 
-          details: [{ label: 'Tip', text: '가벼운 몸으로 마지막 일정 시작' }]
-        },
-        { 
-          time: '10:15', 
-          title: '핑크 성당 (다낭 대성당)', 
-          desc: '인증샷 명소', 
-          icon: <Camera size={16} />, 
-          mapQuery: 'Da Nang Cathedral',
-          details: [{ label: 'Move', text: '그랩 5~10분' }]
-        },
-        { 
-          time: '11:00', 
-          title: '다낭 미술관', 
-          desc: '예술 작품 관람', 
-          icon: <Camera size={16} />, 
-          mapQuery: 'Da Nang Fine Arts Museum',
-          details: [{ label: 'Move', text: '핑크성당에서 도보 이동 가능' }]
-        },
-        { 
-          time: '12:30', 
-          title: '점심: 피자포피스 (Pizza 4P\'s)', 
-          desc: '인도차이나점 (예약 필수)', 
-          icon: <Utensils size={16} />, 
-          mapQuery: 'Pizza 4P\'s Indochina',
-          details: [{ label: 'Menu', text: '부라타 치즈 피자, 게살 파스타 강추!' }]
-        },
-        { 
-          time: '14:00', 
-          title: '롯데마트 쇼핑', 
-          desc: '귀국 선물 구매', 
-          icon: <ShoppingBag size={16} />, 
-          mapQuery: 'Lotte Mart Danang',
-          details: [{ label: 'Note', text: '짐이 많아지면 보관함 이용' }]
-        },
-        { 
-          time: '16:00', 
-          title: '미케비치 카페', 
-          desc: '더 가든 or 에스코 비치바', 
-          icon: <Coffee size={16} />, 
-          mapQuery: 'The Garden Restaurant Danang',
-          details: [{ label: 'Move', text: '롯데마트에서 약 15분' }]
-        },
-        { 
-          time: '17:30', 
-          title: '저녁: 랑응에 / 냐항 베안', 
-          desc: '마지막 해산물 만찬', 
-          icon: <Utensils size={16} />, 
-          mapQuery: 'Nha Hang Lang Nghe',
-          details: [{ label: 'Move', text: '해안도로 따라 이동' }]
-        },
-        { 
-          time: '18:50', 
-          title: '노보텔 (짐 찾기)', 
-          desc: '맡겨둔 짐 픽업', 
-          icon: <Hotel size={16} />, 
-          details: []
-        },
-        { 
-          time: '19:15', 
-          title: '[투어패스 3] 마사지 & 환복', 
-          desc: '더 스파 or 유리 스파', 
-          icon: <Moon size={16} />, 
-          mapQuery: 'The Spa Danang',
-          details: [
-            { label: 'Move', text: '짐 싣고 공항 근처 스파로 이동' },
-            { label: 'Update', text: '샤워 후 편한 옷으로 환복' }
-          ]
-        },
-        { 
-          time: '20:45', 
-          title: '다낭 공항 샌딩', 
-          desc: '투어패스 차량 이용', 
-          icon: <Car size={16} />, 
-          details: [{ label: 'Time', text: '출발 2시간 전 도착 목표' }]
-        },
-        { 
-          time: '22:55', 
-          title: '다낭 출발 (WE202)', 
-          desc: '한국으로 출발', 
-          icon: <Plane size={16} />, 
-          details: []
-        },
-        { 
-          time: '05:30', 
-          title: '인천 도착 (+1일)', 
-          desc: '여행 종료', 
-          icon: <Plane size={16} />, 
-          details: []
-        }
-      ]
-    },
-  ];
-
-  const checklistSections = [
-    {
-      title: "🛫 필수 예약 및 서류",
-      items: [
-        { id: 'ticket', text: '항공권 E-티켓 출력 (파라타항공 WE201/WE202 시간 확인)' },
-        { id: 'hotel_voucher', text: '호텔 바우처 저장 (윙크 & 노보텔 날짜 재확인)' },
-        { id: 'insurance', text: '여행자 보험 가입 (3인 가족형, 영문 가입증명서 캡처)' },
-        { id: 'money', text: '환전 & 카드 준비 (트래블로그/월렛 충전 + 달러($) 비상금)' },
-        { id: 'sim', text: '데이터 준비 (유심/이심 무제한 추천 - 아이 핸드폰도 필수!)' },
-        { id: 'grab', text: 'Grab 앱 설치 & 카드 등록 (필수! 한국에서 미리 등록)' },
-        { id: 'voucher', text: '바우처 PDF 저장 (클룩: 공항/호이안, 야놀자: 바나힐)' },
-        { id: 'banahill', text: '바나힐 티켓 구매 (기본 입장권 또는 런치 콤보권)' },
-      ]
-    },
-    {
-      title: "📩 사전 예약 및 요청",
-      items: [
-        { id: 'wink_req', text: '윙크 호텔: 24시간 스테이 확인 (1/2 체크아웃 확정)' },
-        { id: 'novotel_req', text: '노보텔: 엑스트라 베드(거실) 세팅 요청' },
-        { id: 'pizza', text: '[식당] 피자포피스: 1/5(월) 점심 - 인도차이나점' },
-        { id: 'bana_qr', text: '[티켓] 바나힐 입장권: 한국에서 미리 구매 (QR코드)' },
-        { id: 'lantern', text: '[체험] 호이안 랜턴 만들기: 1/3(토) 16:30 예약' },
-        { id: 'oneday', text: '[체험] 다낭 원데이 클래스: 1/4(일) 14:00 예약' },
-        { id: 'massage', text: '[개별] 마사지 예약: 1/2(금) 저녁 골든 로터스 스파' },
-        { id: 'cruise', text: '[개별] 크루즈 예약: 1/4(일) 20:15 (용다리 불쇼)' },
-        { id: 'tp1', text: '[투어패스 1] 1/3 아트/세레네 스파' },
-        { id: 'tp2', text: '[투어패스 2] 1/4 하엔 스파 (16:30)' },
-        { id: 'tp3', text: '[투어패스 3] 1/5 더 스파/유리 + 샌딩' },
-      ]
-    },
-    {
-      title: "🎒 짐싸기",
-      items: [
-        { id: 'passport', text: '여권 (유효기간 6개월 이상)' },
-        { id: 'filter', text: '샤워기 필터 (본체 1개 + 리필 3개)' },
-        { id: 'wallet', text: '동지갑 (베트남 화폐 단위 헷갈림 방지)' },
-        { id: 'power', text: '멀티탭 (3구 이상)' },
-        { id: 'meds', text: '상비약 (감기약, 소화제, 밴드, 모기기피제)' },
-        { id: 'clothes', text: '의류 (경량 패딩/바람막이 - 바나힐 추움!)' },
-        { id: 'swim', text: '수영복 (미카즈키 워터파크용)' },
-        { id: 'kids', text: '아이 용품 (헤드셋, 영상 저장, 간식)' },
-        { id: 'tip', text: '팁(Tip)용 현금 (10만동, 1~2만동)' },
-      ]
-    }
-  ];
-
-  const renderOverview = () => (
-    <div className="space-y-4 animate-fadeIn">
-      <div className="bg-gradient-to-r from-blue-500 to-teal-400 p-6 rounded-2xl text-white shadow-lg">
-        <h2 className="text-2xl font-bold mb-1">다낭 가족 여행 👨‍👩‍👧</h2>
-        <p className="opacity-90 text-sm">2025.12.31 - 2026.01.05</p>
-        <div className="mt-4 flex gap-2">
-          <span className="bg-white/20 px-3 py-1 rounded-full text-xs">힐링🌿</span>
-          <span className="bg-white/20 px-3 py-1 rounded-full text-xs">미식🍜</span>
-          <span className="bg-white/20 px-3 py-1 rounded-full text-xs">소녀감성💅</span>
-        </div>
-      </div>
-
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
-          <Plane size={18} className="text-blue-500" /> 항공편
-        </h3>
-        <div className="space-y-3">
-          {flights.map((f, i) => (
-            <div key={i} className="bg-gray-50 p-3 rounded-lg text-sm">
-              <div className="flex justify-between font-semibold text-gray-700 mb-1">
-                <span>{f.type}</span>
-                <span className="text-blue-600">{f.flight}</span>
-              </div>
-              <div className="text-gray-600">{f.date} | {f.time}</div>
-              <div className="text-xs text-gray-400 mt-1">{f.note}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
-          <Hotel size={18} className="text-orange-500" /> 숙소
-        </h3>
-        <div className="space-y-3">
-          {hotels.map((h, i) => (
-            <div key={i} className="bg-orange-50 p-3 rounded-lg text-sm border-l-4 border-orange-400">
-              <div className="flex justify-between items-start">
-                <div className="font-bold text-gray-800">{h.name}</div>
-                {h.mapQuery && (
-                  <button 
-                    onClick={() => openMap(h.mapQuery)} 
-                    className="text-blue-400 hover:text-blue-600"
-                  >
-                    <MapPin size={16} />
-                  </button>
-                )}
-              </div>
-              <div className="text-gray-600 text-xs mt-1">{h.period}</div>
-              <div className="text-orange-600 text-xs mt-1 font-medium">{h.note}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderSchedule = () => (
-    <div className="space-y-3 animate-fadeIn pb-20">
-      {scheduleData.map((day) => (
-        <div key={day.day} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div 
-            onClick={() => toggleDay(day.day)}
-            className={`p-4 flex justify-between items-center cursor-pointer transition-colors ${expandedDay === day.day ? 'bg-blue-50' : 'bg-white'}`}
-          >
+    <!-- Header -->
+    <header class="gradient-header text-white p-6 sticky top-0 z-50 shadow-md">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
             <div>
-              <span className="text-xs font-bold text-blue-500 bg-blue-100 px-2 py-0.5 rounded mr-2">Day {day.day}</span>
-              <span className="text-gray-500 text-sm">{day.date}</span>
-              <div className="font-bold text-gray-800 mt-1">{day.title}</div>
+                <h1 class="text-2xl font-bold"><i class="fas fa-plane-departure mr-2"></i>2026 다낭 가족여행</h1>
+                <p class="text-sm opacity-90 mt-1">2025.12.31 ~ 2026.01.05 (5박 6일)</p>
             </div>
-            {expandedDay === day.day ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
-          </div>
-          
-          {expandedDay === day.day && (
-            <div className="p-4 border-t border-gray-100 bg-gray-50">
-              <div className="relative pl-4 border-l-2 border-gray-200 space-y-6">
-                {day.activities.map((act, idx) => (
-                  <div key={idx} className="relative group">
-                    <div className="absolute -left-[21px] top-1 bg-white p-1 rounded-full border border-gray-200 text-gray-500 z-10">
-                      {act.icon}
+            <div class="text-right hidden sm:block">
+                <p class="font-medium">👨‍👩‍👧 3인 가족 (초6 자녀)</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto p-4">
+
+        <!-- Quick Navigation -->
+        <div class="flex overflow-x-auto space-x-2 pb-4 nav-scroll mb-2 sticky top-[88px] z-40 bg-[#f0f4f8] py-2">
+            <a href="#flight-hotel" class="flex-shrink-0 px-4 py-2 bg-white rounded-full text-sm font-bold text-blue-600 shadow-sm border border-blue-100">✈️ 항공/숙소</a>
+            <a href="#checklist" class="flex-shrink-0 px-4 py-2 bg-white rounded-full text-sm font-bold text-red-500 shadow-sm border border-red-100">✅ 필수준비</a>
+            <a href="#day1" class="flex-shrink-0 px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium shadow-sm">1일차</a>
+            <a href="#day2" class="flex-shrink-0 px-4 py-2 bg-white rounded-full text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-100">2일차</a>
+            <a href="#day3" class="flex-shrink-0 px-4 py-2 bg-white rounded-full text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-100">3일차</a>
+            <a href="#day4" class="flex-shrink-0 px-4 py-2 bg-white rounded-full text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-100">4일차</a>
+            <a href="#day5" class="flex-shrink-0 px-4 py-2 bg-white rounded-full text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-100">5일차</a>
+            <a href="#day6" class="flex-shrink-0 px-4 py-2 bg-white rounded-full text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-100">6일차</a>
+        </div>
+
+        <!-- Section 1: Flight & Hotel -->
+        <div id="flight-hotel" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="card">
+                <h3 class="font-bold text-gray-800 mb-2 border-b pb-2"><i class="fas fa-ticket-alt text-blue-500 mr-2"></i>항공편 정보</h3>
+                <div class="text-sm space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">출국 (12.31 수)</span>
+                        <span class="font-bold text-blue-600">WE201</span>
+                    </div>
+                    <div class="text-xs text-gray-500 flex justify-between">
+                        <span>18:45 인천 출발</span>
+                        <span>21:55 다낭 도착</span>
+                    </div>
+                    <div class="border-t border-dashed my-1"></div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">귀국 (01.05 월)</span>
+                        <span class="font-bold text-blue-600">WE202</span>
+                    </div>
+                    <div class="text-xs text-gray-500 flex justify-between">
+                        <span>22:55 다낭 출발</span>
+                        <span>05:30(+1) 인천 도착</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3 class="font-bold text-gray-800 mb-2 border-b pb-2"><i class="fas fa-hotel text-indigo-500 mr-2"></i>숙소 정보</h3>
+                <div class="text-sm space-y-3">
+                    <div>
+                        <div class="font-bold text-gray-800 flex items-center">
+                            1. 윙크 호텔 다낭 리버사이드
+                            <a href="https://www.google.com/maps/search/?api=1&query=Wink+Hotel+Danang+Riverside" target="_blank" class="map-btn" title="지도 보기"><i class="fas fa-map-marker-alt"></i></a>
+                        </div>
+                        <p class="text-xs text-gray-500">12.31 ~ 01.02 (2박) | 24시간 스테이</p>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{act.time}</span>
-                        {act.mapQuery && (
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); openMap(act.mapQuery); }}
-                            className="text-gray-400 hover:text-blue-500 flex items-center gap-1 text-xs border border-gray-200 rounded px-1.5 py-0.5 transition-colors"
-                          >
-                            <MapPin size={12} />
-                            지도
-                          </button>
-                        )}
-                      </div>
-                      
-                      <h4 
-                        className={`font-bold text-gray-800 mt-1 flex items-center gap-1 ${act.mapQuery ? 'cursor-pointer hover:text-blue-600' : ''}`}
-                        onClick={() => act.mapQuery && openMap(act.mapQuery)}
-                      >
-                        {act.title}
-                        {act.mapQuery && <ExternalLink size={12} className="opacity-30" />}
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-0.5">{act.desc}</p>
-                      
-                      {/* 상세 정보 (Details) */}
-                      {act.details && act.details.length > 0 && (
-                        <div className="mt-2 space-y-1.5">
-                          {act.details.map((detail, dIdx) => (
-                            <div key={dIdx} className="text-xs flex items-start gap-2 bg-gray-50 p-1.5 rounded">
-                              <span className={`font-bold shrink-0 ${
-                                detail.label === 'Move' ? 'text-purple-600' : 
-                                detail.label === 'Note' ? 'text-orange-600' :
-                                detail.label === 'Menu' ? 'text-green-600' :
-                                detail.label === 'Tip' ? 'text-pink-600' :
-                                'text-gray-500'
-                              }`}>
-                                {detail.label}
-                              </span>
-                              <span className="text-gray-700 break-words">{detail.text}</span>
-                            </div>
-                          ))}
+                        <div class="font-bold text-gray-800 flex items-center">
+                            2. 노보텔 다낭 프리미어
+                            <a href="https://www.google.com/maps/search/?api=1&query=Novotel+Danang+Premier+Han+River" target="_blank" class="map-btn" title="지도 보기"><i class="fas fa-map-marker-alt"></i></a>
                         </div>
-                      )}
+                        <p class="text-xs text-gray-500">01.02 ~ 01.05 (3박) | 1 Bedroom Apt</p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderChecklist = () => (
-    <div className="space-y-4 animate-fadeIn pb-20">
-      {checklistSections.map((section, idx) => (
-        <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <CheckSquare size={18} className="text-green-500" /> {section.title}
-          </h3>
-          <div className="space-y-3">
-            {section.items.map((item) => (
-              <div 
-                key={item.id} 
-                onClick={() => toggleCheck(item.id)}
-                className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 cursor-pointer active:bg-gray-100"
-              >
-                <div className={`w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center mt-0.5 ${checkedItems[item.id] ? 'bg-green-500 border-green-500' : 'border-gray-300 bg-white'}`}>
-                  {checkedItems[item.id] && <div className="w-2 h-2 bg-white rounded-full" />}
                 </div>
-                <span className={`text-sm ${checkedItems[item.id] ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
-                  {item.text}
-                </span>
-              </div>
-            ))}
-          </div>
+            </div>
         </div>
-      ))}
-      
-      <div className="bg-red-50 p-4 rounded-xl text-red-800 text-sm space-y-2">
-        <h4 className="font-bold flex items-center gap-2"><MapPin size={16}/> 비상 연락처</h4>
-        <p>📞 영사 콜센터: +82-2-3210-0404</p>
-        <p>🏥 패밀리 메디컬: +84-236-3509-111</p>
-      </div>
-    </div>
-  );
 
-  const renderBudget = () => (
-    <div className="space-y-4 animate-fadeIn">
-       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <Wallet size={18} className="text-purple-500" /> 주요 예산 (3인)
-        </h3>
-        <div className="divide-y divide-gray-100">
-          <div className="py-3 flex justify-between text-sm">
-            <span className="text-gray-600">바나힐 입장권</span>
-            <span className="font-bold">2,700,000 ₫</span>
-          </div>
-          <div className="py-3 flex justify-between text-sm">
-            <span className="text-gray-600">미카즈키 (입장+식사)</span>
-            <span className="font-bold">2,000,000 ₫</span>
-          </div>
-          <div className="py-3 flex justify-between text-sm">
-            <span className="text-gray-600">발마사지 3인 (팁포함)</span>
-            <span className="font-bold">1,200,000 ₫</span>
-          </div>
-           <div className="py-3 flex justify-between text-sm">
-            <span className="text-gray-600">원데이 클래스</span>
-            <span className="font-bold">1,000,000 ₫</span>
-          </div>
+        <!-- Section 2: Money & Budget -->
+        <div class="card bg-green-50 border border-green-100 mb-6">
+            <h3 class="font-bold text-green-800 mb-3"><i class="fas fa-wallet mr-2"></i>환전 및 경비 꿀팁</h3>
+            <ul class="text-sm text-gray-700 space-y-2">
+                <li>💵 <b>준비물:</b> $100 신권($400~$500) + 비상금 5만원(VND) + 트래블월렛 카드</li>
+                <li>🏦 <b>환전:</b> 1일차 밤 공항에서 소액($100) 환전 → 나머지는 4일차 한시장 금은방 이용</li>
+                <li>🚕 <b>Grab:</b> 카드 등록 필수 (잔돈 시비 방지)</li>
+            </ul>
         </div>
-        <div className="mt-4 p-3 bg-purple-50 text-purple-700 text-xs rounded-lg">
-          💡 환율: 10,000 VND ≈ 540 KRW
+
+        <!-- Section 3: Checklist -->
+        <div id="checklist" class="card bg-red-50 border border-red-100 mb-8">
+            <h3 class="font-bold text-red-800 mb-3"><i class="fas fa-clipboard-check mr-2"></i>출국 전 필수 확인</h3>
+            <div class="space-y-2 text-sm">
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" class="mt-1 mr-2 accent-red-500">
+                    <span><b>[서류] 영문 가족관계증명서 (자녀 기준)</b> <br><span class="text-xs text-red-600">*종이 인쇄 필수 (미성년자 입국 심사)</span></span>
+                </label>
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" class="mt-1 mr-2 accent-red-500">
+                    <span><b>[항공]</b> 여권 정보 등록 (파라타항공 웹/앱)</span>
+                </label>
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" class="mt-1 mr-2 accent-red-500">
+                    <span><b>[식당]</b> 피자포피스 예약 (1/5 점심, 인도차이나점)</span>
+                </label>
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" class="mt-1 mr-2 accent-red-500">
+                    <span><b>[티켓]</b> 바나힐 입장권 구매 (QR코드 캡처)</span>
+                </label>
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" class="mt-1 mr-2 accent-red-500">
+                    <span><b>[체험]</b> 호이안 랜턴 만들기 (1/3 16:30) 예약</span>
+                </label>
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" class="mt-1 mr-2 accent-red-500">
+                    <span><b>[체험]</b> 원데이 클래스 (1/4 14:00) 예약</span>
+                </label>
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" class="mt-1 mr-2 accent-red-500">
+                    <span><b>[예약]</b> 골든 로터스 스파 (1/2 저녁) & 미슈앙크루즈 (1/4 20:15)</span>
+                </label>
+            </div>
         </div>
-      </div>
-    </div>
-  );
 
-  return (
-    <div className="w-full max-w-md mx-auto h-screen bg-gray-50 flex flex-col font-sans">
-      {/* Top Bar */}
-      <div className="bg-white px-4 py-3 shadow-sm z-10 sticky top-0">
-        <h1 className="text-lg font-bold text-center text-gray-800">다낭 여행 2026 🇻🇳</h1>
-      </div>
+        <!-- Itinerary -->
+        <h2 class="section-title"><i class="far fa-calendar-alt"></i>일자별 상세 일정</h2>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 pb-24">
-        {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'schedule' && renderSchedule()}
-        {activeTab === 'checklist' && renderChecklist()}
-        {activeTab === 'budget' && renderBudget()}
-      </div>
+        <!-- Day 1 -->
+        <div id="day1" class="mb-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 bg-gray-200 px-3 py-1 rounded inline-block">Day 1. 12.31 (수)</h3>
+            <div class="bg-white rounded-2xl p-5 card-shadow relative">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">18:45</div>
+                    <div class="content font-bold">인천공항 출발 (WE201)</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">21:55</div>
+                    <div class="content">
+                        <span class="font-bold">다낭 공항 도착</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Da+Nang+International+Airport" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600 mt-1">💱 <b>Tip:</b> 짐 찾고 공항 환전소에서 $100~$200 환전하기</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">23:15</div>
+                    <div class="content">
+                        <span class="font-bold">윙크 호텔 체크인</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Wink+Hotel+Danang+Riverside" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-blue-500 mt-1">🎉 <b>Happy New Year!</b> 루프탑/객실 불꽃놀이 & 배달K 야식</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      {/* Bottom Navigation */}
-      <div className="bg-white border-t border-gray-200 fixed bottom-0 w-full max-w-md flex justify-around py-3 px-2 z-20 pb-safe">
-        <button 
-          onClick={() => setActiveTab('overview')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'overview' ? 'text-blue-600' : 'text-gray-400'}`}
-        >
-          <Hotel size={24} strokeWidth={activeTab === 'overview' ? 2.5 : 2} />
-          <span className="text-[10px] font-medium">개요</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('schedule')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'schedule' ? 'text-blue-600' : 'text-gray-400'}`}
-        >
-          <Calendar size={24} strokeWidth={activeTab === 'schedule' ? 2.5 : 2} />
-          <span className="text-[10px] font-medium">일정</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('checklist')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'checklist' ? 'text-blue-600' : 'text-gray-400'}`}
-        >
-          <CheckSquare size={24} strokeWidth={activeTab === 'checklist' ? 2.5 : 2} />
-          <span className="text-[10px] font-medium">체크</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('budget')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'budget' ? 'text-blue-600' : 'text-gray-400'}`}
-        >
-          <Wallet size={24} strokeWidth={activeTab === 'budget' ? 2.5 : 2} />
-          <span className="text-[10px] font-medium">예산</span>
-        </button>
-      </div>
-    </div>
-  );
-};
+        <!-- Day 2 -->
+        <div id="day2" class="mb-8">
+            <h3 class="text-lg font-bold text-blue-800 mb-4 bg-blue-100 px-3 py-1 rounded inline-block">Day 2. 01.01 (목) | 온천 & 힐링</h3>
+            <div class="bg-white rounded-2xl p-5 card-shadow relative">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">10:00</div>
+                    <div class="content">
+                        <span class="font-bold">미카즈키 온천 & 워터파크</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Mikazuki+Japanese+Resorts+Spa+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <span class="tag tag-blue">체험</span>
+                        <p class="text-sm text-gray-600 mt-1">실내 워터파크 & 온천욕 (점심은 내부 푸드코트)</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">15:30</div>
+                    <div class="content">
+                        <span class="font-bold">영흥사 (링엄사)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Linh+Ung+Pagoda+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600 mt-1">해수관음상 & 미케비치 뷰 감상</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">17:00</div>
+                    <div class="content">
+                        <span class="font-bold">저녁: 목 식당 (Moc Seafood)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Moc+Seafood+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600 mt-1">메뉴: 칠리새우, 모닝글로리, 가리비 구이</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">18:30</div>
+                    <div class="content">
+                        <span class="font-bold">손트라 야시장 & 용다리 구경</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Son+Tra+Night+Market" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-export default DanangTripDashboard;
+        <!-- Day 3 -->
+        <div id="day3" class="mb-8">
+            <h3 class="text-lg font-bold text-yellow-800 mb-4 bg-yellow-100 px-3 py-1 rounded inline-block">Day 3. 01.02 (금) | 바나힐 정복</h3>
+            <div class="bg-white rounded-2xl p-5 card-shadow relative">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">09:40</div>
+                    <div class="content">
+                        <span class="font-bold">바나힐 출발 (야놀자 밴)</span>
+                        <p class="text-sm text-gray-600">체크아웃 후 짐은 차량에 보관</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">10:30</div>
+                    <div class="content">
+                        <span class="font-bold">바나힐 도착 & 골든 브릿지</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Sun+World+Ba+Na+Hills" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-red-500 mt-1">* 입장권 미리 구매 필수</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">12:00</div>
+                    <div class="content">
+                        <span class="font-bold">점심 식사 (프랑스 마을)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Mercure+Danang+French+Village+Bana+Hills" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600 mt-1">뷔페(아라팡) or 양식(브라세리) or BBQ(캅카스)</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">13:00</div>
+                    <div class="content">
+                        <span class="font-bold">밀랍인형 박물관 & 판타지 파크</span>
+                        <p class="text-sm text-gray-600 mt-1">💡 <b>전략:</b> 밀랍인형 보고 → 루지 먼저 탑승 → 실내 범퍼카</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">15:30</div>
+                    <div class="content">
+                        <span class="font-bold">스타벅스 바나힐점</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Starbucks+Ba+Na+Hills" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600 mt-1">다낭 시티컵 구매 & 아시아 돌체 라떼</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">17:30</div>
+                    <div class="content">
+                        <span class="font-bold">노보텔 체크인</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Novotel+Danang+Premier+Han+River" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">18:00</div>
+                    <div class="content">
+                        <span class="font-bold">저녁: 마담란 (반세오)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Madam+Lan+Restaurant+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">19:30</div>
+                    <div class="content">
+                        <span class="font-bold">골든 로터스 스파 (발마사지)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Golden+Lotus+Spa+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <span class="tag tag-red">개별예약</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 4 -->
+        <div id="day4" class="mb-8">
+            <h3 class="text-lg font-bold text-orange-800 mb-4 bg-orange-100 px-3 py-1 rounded inline-block">Day 4. 01.03 (토) | 호이안 감성</h3>
+            <div class="bg-white rounded-2xl p-5 card-shadow relative">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">10:10</div>
+                    <div class="content">
+                        <span class="font-bold">카페: 더 덱 하우스</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=The+Deck+House+An+Bang+Beach" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600">안방비치 뷰 & 사진 맛집</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">12:00</div>
+                    <div class="content">
+                        <span class="font-bold">점심: 라플라주 (La Plage)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=La+Plage+Hoi+An" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600">가리비, 총알오징어, 해산물볶음밥</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">14:00</div>
+                    <div class="content">
+                        <span class="font-bold">호이안 올드타운 (씨클로)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Hoi+An+Ancient+Town" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">16:30</div>
+                    <div class="content">
+                        <span class="font-bold">나만의 랜턴 만들기 체험</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=The+Lantern+Lady+Hoi+An" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <span class="tag tag-green">예약필수</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">18:00</div>
+                    <div class="content">
+                        <span class="font-bold">야시장 & 소원배 타기</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Hoi+An+Night+Market" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">20:00</div>
+                    <div class="content">
+                        <span class="font-bold">마사지 [투어패스 1회차]</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Art+Spa+Hoi+An" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600">아트 스파 또는 세레네 스파</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 5 -->
+        <div id="day5" class="mb-8">
+            <h3 class="text-lg font-bold text-purple-800 mb-4 bg-purple-100 px-3 py-1 rounded inline-block">Day 5. 01.04 (일) | 클래스 & 불쇼</h3>
+            <div class="bg-white rounded-2xl p-5 card-shadow relative">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">09:00</div>
+                    <div class="content">
+                        <span class="font-bold">오행산 (마블 마운틴)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Marble+Mountains+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">12:00</div>
+                    <div class="content">
+                        <span class="font-bold">점심: 씀모이가든</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Sum+Moi+Garden+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">14:00</div>
+                    <div class="content">
+                        <span class="font-bold">다낭 원데이 클래스 (도자기/캔들)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Gom+An+Nhien+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <span class="tag tag-blue">체험</span>
+                        <p class="text-sm text-gray-600 mt-1">곰 안 니엔 (Gốm An Nhiên) 추천</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">16:30</div>
+                    <div class="content">
+                        <span class="font-bold">마사지 [투어패스 2회차]</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Haen+Spa+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600">하엔 스파 또는 바빌론 스파 (저녁 전 힐링)</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">18:00</div>
+                    <div class="content">
+                        <span class="font-bold">저녁: 농티화 (Ngon Thi Hoa)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Ngon+Thi+Hoa+Restaurant" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">20:15</div>
+                    <div class="content">
+                        <span class="font-bold text-purple-600">미슈앙크루즈 탑승 (용다리 불쇼) 🔥</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=My+Xuan+Cruise+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600 mt-1">일요일 밤 9시 불쇼 관람 골든 타임!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 6 -->
+        <div id="day6" class="mb-8">
+            <h3 class="text-lg font-bold text-gray-700 mb-4 bg-gray-200 px-3 py-1 rounded inline-block">Day 6. 01.05 (월) | Last Fun</h3>
+            <div class="bg-white rounded-2xl p-5 card-shadow relative">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">10:00</div>
+                    <div class="content">
+                        <span class="font-bold">체크아웃 & 짐 보관 (호텔 로비)</span>
+                        <p class="text-sm text-red-500 font-bold">※ 짐은 계속 호텔에 둡니다! (가볍게 이동)</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">10:15</div>
+                    <div class="content">
+                        <span class="font-bold">핑크 성당 & 다낭 미술관</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Da+Nang+Cathedral" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">12:30</div>
+                    <div class="content">
+                        <span class="font-bold">점심: 피자포피스 (인도차이나점)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Pizza+4P's+Indochina+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <span class="tag tag-green">예약필수</span>
+                        <p class="text-sm text-gray-600">인생 피자 (부라타 치즈 & 게살 파스타)</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">14:00</div>
+                    <div class="content">
+                        <span class="font-bold">롯데마트 쇼핑 (짐 없이)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Lotte+Mart+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">16:00</div>
+                    <div class="content">
+                        <span class="font-bold">미케비치 카페 (더 가든/에스코)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Esco+Beach+Bar+Lounge" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">17:30</div>
+                    <div class="content">
+                        <span class="font-bold">저녁: 랑응에 or 냐항 베안</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Nha+Hang+Be+Anh" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">18:50</div>
+                    <div class="content">
+                        <span class="font-bold">호텔(노보텔) 복귀 & 짐 찾기</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">19:15</div>
+                    <div class="content">
+                        <span class="font-bold">마사지 [투어패스 3회차]</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=The+Spa+Da+Nang" target="_blank" class="map-btn"><i class="fas fa-map-marker-alt"></i></a>
+                        <p class="text-sm text-gray-600">짐 싣고 이동 → 마사지 & 샤워 & 환복</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="time font-bold text-blue-600 text-sm mb-1">20:45</div>
+                    <div class="content">
+                        <span class="font-bold">다낭 공항 샌딩 (투어패스 차량)</span>
+                        <span class="tag tag-purple">샌딩</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget & Emergency -->
+        <div class="card bg-gray-800 text-white">
+            <h3 class="font-bold text-lg mb-4 text-white">💰 예산 & 비상연락처</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <h4 class="font-bold text-yellow-400 mb-2">예상 지출 (주요 항목)</h4>
+                    <ul class="space-y-1 opacity-90">
+                        <li>• 바나힐 (3인): 약 270만동</li>
+                        <li>• 미카즈키 (3인): 약 200만동</li>
+                        <li>• 미슈앙크루즈 (3인): 약 45만동</li>
+                        <li>• 발마사지 (3인): 약 120만동</li>
+                        <li>• 원데이 클래스: 약 100만동</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-green-400 mb-2">Emergency</h4>
+                    <ul class="space-y-1 opacity-90">
+                        <li>📞 주 다낭 한국 영사관: +84-236-3509-111</li>
+                        <li>🚑 패밀리 메디컬: +84-236-3509-111</li>
+                        <li>🚓 영사 콜센터: +82-2-3210-0404</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>
